@@ -12,17 +12,55 @@ import {
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Mail, FileText, CalendarClock, Sparkles, ShieldCheck } from "lucide-react";
-import { useWorkspace, type View } from "@/lib/workspace-context";
+import { Button } from "@/components/ui/button";
+import {
+  Mail,
+  FileText,
+  CalendarClock,
+  Sparkles,
+  ShieldCheck,
+  LayoutDashboard,
+  BookOpen,
+  MessageSquare,
+  History,
+  Settings,
+  HelpCircle,
+  LogOut,
+} from "lucide-react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { useWorkspace } from "@/lib/workspace-context";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-const NAV: Array<{ id: View; label: string; icon: typeof Mail }> = [
-  { id: "email", label: "Smart Email", icon: Mail },
-  { id: "meeting", label: "Meeting Notes", icon: FileText },
-  { id: "planner", label: "Task Planner", icon: CalendarClock },
-];
+const NAV = [
+  { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/app/email", label: "Smart Email", icon: Mail },
+  { to: "/app/meeting", label: "Meeting Notes", icon: FileText },
+  { to: "/app/planner", label: "Task Planner", icon: CalendarClock },
+  { to: "/app/research", label: "Research", icon: BookOpen },
+  { to: "/app/chat", label: "AI Chatbot", icon: MessageSquare },
+] as const;
+
+const SECONDARY = [
+  { to: "/app/history", label: "History", icon: History },
+  { to: "/app/settings", label: "Settings", icon: Settings },
+  { to: "/app/help", label: "Help", icon: HelpCircle },
+] as const;
 
 export function AppSidebar() {
-  const { view, setView, factCheck, setFactCheck } = useWorkspace();
+  const { factCheck, setFactCheck } = useWorkspace();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const navigate = useNavigate();
+
+  const isActive = (to: string, exact?: boolean) =>
+    exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+    navigate({ to: "/auth" });
+  };
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -42,14 +80,34 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {NAV.map((n) => (
-                <SidebarMenuItem key={n.id}>
+                <SidebarMenuItem key={n.to}>
                   <SidebarMenuButton
-                    isActive={view === n.id}
-                    onClick={() => setView(n.id)}
+                    asChild
+                    isActive={isActive(n.to, n.exact)}
                     tooltip={n.label}
                   >
-                    <n.icon className="h-4 w-4" />
-                    <span>{n.label}</span>
+                    <Link to={n.to}>
+                      <n.icon className="h-4 w-4" />
+                      <span>{n.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Personal</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {SECONDARY.map((n) => (
+                <SidebarMenuItem key={n.to}>
+                  <SidebarMenuButton asChild isActive={isActive(n.to)} tooltip={n.label}>
+                    <Link to={n.to}>
+                      <n.icon className="h-4 w-4" />
+                      <span>{n.label}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -64,7 +122,9 @@ export function AppSidebar() {
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-primary" />
                 <div>
-                  <Label htmlFor="fact-check" className="text-sm">Fact & Bias Check</Label>
+                  <Label htmlFor="fact-check" className="text-sm">
+                    Fact & Bias Check
+                  </Label>
                   <p className="text-xs text-muted-foreground">Highlight unverified claims</p>
                 </div>
               </div>
@@ -74,9 +134,15 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="px-2 pb-2 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-          v1.0 · Demo mock outputs
-        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={signOut}
+          className="justify-start group-data-[collapsible=icon]:justify-center"
+        >
+          <LogOut className="h-4 w-4" />
+          <span className="group-data-[collapsible=icon]:hidden">Sign out</span>
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );
