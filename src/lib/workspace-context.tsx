@@ -1,10 +1,6 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
-
-type View = "email" | "meeting" | "planner";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 type Ctx = {
-  view: View;
-  setView: (v: View) => void;
   factCheck: boolean;
   setFactCheck: (v: boolean) => void;
 };
@@ -12,12 +8,19 @@ type Ctx = {
 const WorkspaceCtx = createContext<Ctx | null>(null);
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const [view, setView] = useState<View>("email");
   const [factCheck, setFactCheck] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("factCheck");
+    if (stored) setFactCheck(stored === "1");
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("factCheck", factCheck ? "1" : "0");
+  }, [factCheck]);
+
   return (
-    <WorkspaceCtx.Provider value={{ view, setView, factCheck, setFactCheck }}>
-      {children}
-    </WorkspaceCtx.Provider>
+    <WorkspaceCtx.Provider value={{ factCheck, setFactCheck }}>{children}</WorkspaceCtx.Provider>
   );
 }
 
@@ -26,5 +29,3 @@ export function useWorkspace() {
   if (!c) throw new Error("useWorkspace must be used within WorkspaceProvider");
   return c;
 }
-
-export type { View };

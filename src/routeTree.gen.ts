@@ -9,38 +9,201 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app/index'
+import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app/settings'
+import { Route as AuthenticatedAppResearchRouteImport } from './routes/_authenticated/app/research'
+import { Route as AuthenticatedAppPlannerRouteImport } from './routes/_authenticated/app/planner'
+import { Route as AuthenticatedAppMeetingRouteImport } from './routes/_authenticated/app/meeting'
+import { Route as AuthenticatedAppHistoryRouteImport } from './routes/_authenticated/app/history'
+import { Route as AuthenticatedAppHelpRouteImport } from './routes/_authenticated/app/help'
+import { Route as AuthenticatedAppEmailRouteImport } from './routes/_authenticated/app/email'
+import { Route as AuthenticatedAppChatIndexRouteImport } from './routes/_authenticated/app/chat/index'
+import { Route as AuthenticatedAppChatThreadIdRouteImport } from './routes/_authenticated/app/chat/$threadId'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
+  id: '/app/',
+  path: '/app/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAppSettingsRoute =
+  AuthenticatedAppSettingsRouteImport.update({
+    id: '/app/settings',
+    path: '/app/settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppResearchRoute =
+  AuthenticatedAppResearchRouteImport.update({
+    id: '/app/research',
+    path: '/app/research',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppPlannerRoute = AuthenticatedAppPlannerRouteImport.update({
+  id: '/app/planner',
+  path: '/app/planner',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAppMeetingRoute = AuthenticatedAppMeetingRouteImport.update({
+  id: '/app/meeting',
+  path: '/app/meeting',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAppHistoryRoute = AuthenticatedAppHistoryRouteImport.update({
+  id: '/app/history',
+  path: '/app/history',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAppHelpRoute = AuthenticatedAppHelpRouteImport.update({
+  id: '/app/help',
+  path: '/app/help',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAppEmailRoute = AuthenticatedAppEmailRouteImport.update({
+  id: '/app/email',
+  path: '/app/email',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAppChatIndexRoute =
+  AuthenticatedAppChatIndexRouteImport.update({
+    id: '/app/chat/',
+    path: '/app/chat/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppChatThreadIdRoute =
+  AuthenticatedAppChatThreadIdRouteImport.update({
+    id: '/app/chat/$threadId',
+    path: '/app/chat/$threadId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/app/email': typeof AuthenticatedAppEmailRoute
+  '/app/help': typeof AuthenticatedAppHelpRoute
+  '/app/history': typeof AuthenticatedAppHistoryRoute
+  '/app/meeting': typeof AuthenticatedAppMeetingRoute
+  '/app/planner': typeof AuthenticatedAppPlannerRoute
+  '/app/research': typeof AuthenticatedAppResearchRoute
+  '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/app/': typeof AuthenticatedAppIndexRoute
+  '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
+  '/app/chat/': typeof AuthenticatedAppChatIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/app/email': typeof AuthenticatedAppEmailRoute
+  '/app/help': typeof AuthenticatedAppHelpRoute
+  '/app/history': typeof AuthenticatedAppHistoryRoute
+  '/app/meeting': typeof AuthenticatedAppMeetingRoute
+  '/app/planner': typeof AuthenticatedAppPlannerRoute
+  '/app/research': typeof AuthenticatedAppResearchRoute
+  '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/app': typeof AuthenticatedAppIndexRoute
+  '/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
+  '/app/chat': typeof AuthenticatedAppChatIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/app/email': typeof AuthenticatedAppEmailRoute
+  '/_authenticated/app/help': typeof AuthenticatedAppHelpRoute
+  '/_authenticated/app/history': typeof AuthenticatedAppHistoryRoute
+  '/_authenticated/app/meeting': typeof AuthenticatedAppMeetingRoute
+  '/_authenticated/app/planner': typeof AuthenticatedAppPlannerRoute
+  '/_authenticated/app/research': typeof AuthenticatedAppResearchRoute
+  '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/_authenticated/app/chat/$threadId': typeof AuthenticatedAppChatThreadIdRoute
+  '/_authenticated/app/chat/': typeof AuthenticatedAppChatIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/app/email'
+    | '/app/help'
+    | '/app/history'
+    | '/app/meeting'
+    | '/app/planner'
+    | '/app/research'
+    | '/app/settings'
+    | '/app/'
+    | '/app/chat/$threadId'
+    | '/app/chat/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/app/email'
+    | '/app/help'
+    | '/app/history'
+    | '/app/meeting'
+    | '/app/planner'
+    | '/app/research'
+    | '/app/settings'
+    | '/app'
+    | '/app/chat/$threadId'
+    | '/app/chat'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/app/email'
+    | '/_authenticated/app/help'
+    | '/_authenticated/app/history'
+    | '/_authenticated/app/meeting'
+    | '/_authenticated/app/planner'
+    | '/_authenticated/app/research'
+    | '/_authenticated/app/settings'
+    | '/_authenticated/app/'
+    | '/_authenticated/app/chat/$threadId'
+    | '/_authenticated/app/chat/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +211,112 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app/': {
+      id: '/_authenticated/app/'
+      path: '/app'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/settings': {
+      id: '/_authenticated/app/settings'
+      path: '/app/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AuthenticatedAppSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/research': {
+      id: '/_authenticated/app/research'
+      path: '/app/research'
+      fullPath: '/app/research'
+      preLoaderRoute: typeof AuthenticatedAppResearchRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/planner': {
+      id: '/_authenticated/app/planner'
+      path: '/app/planner'
+      fullPath: '/app/planner'
+      preLoaderRoute: typeof AuthenticatedAppPlannerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/meeting': {
+      id: '/_authenticated/app/meeting'
+      path: '/app/meeting'
+      fullPath: '/app/meeting'
+      preLoaderRoute: typeof AuthenticatedAppMeetingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/history': {
+      id: '/_authenticated/app/history'
+      path: '/app/history'
+      fullPath: '/app/history'
+      preLoaderRoute: typeof AuthenticatedAppHistoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/help': {
+      id: '/_authenticated/app/help'
+      path: '/app/help'
+      fullPath: '/app/help'
+      preLoaderRoute: typeof AuthenticatedAppHelpRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/email': {
+      id: '/_authenticated/app/email'
+      path: '/app/email'
+      fullPath: '/app/email'
+      preLoaderRoute: typeof AuthenticatedAppEmailRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/chat/': {
+      id: '/_authenticated/app/chat/'
+      path: '/app/chat'
+      fullPath: '/app/chat/'
+      preLoaderRoute: typeof AuthenticatedAppChatIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/chat/$threadId': {
+      id: '/_authenticated/app/chat/$threadId'
+      path: '/app/chat/$threadId'
+      fullPath: '/app/chat/$threadId'
+      preLoaderRoute: typeof AuthenticatedAppChatThreadIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppEmailRoute: typeof AuthenticatedAppEmailRoute
+  AuthenticatedAppHelpRoute: typeof AuthenticatedAppHelpRoute
+  AuthenticatedAppHistoryRoute: typeof AuthenticatedAppHistoryRoute
+  AuthenticatedAppMeetingRoute: typeof AuthenticatedAppMeetingRoute
+  AuthenticatedAppPlannerRoute: typeof AuthenticatedAppPlannerRoute
+  AuthenticatedAppResearchRoute: typeof AuthenticatedAppResearchRoute
+  AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
+  AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+  AuthenticatedAppChatThreadIdRoute: typeof AuthenticatedAppChatThreadIdRoute
+  AuthenticatedAppChatIndexRoute: typeof AuthenticatedAppChatIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppEmailRoute: AuthenticatedAppEmailRoute,
+  AuthenticatedAppHelpRoute: AuthenticatedAppHelpRoute,
+  AuthenticatedAppHistoryRoute: AuthenticatedAppHistoryRoute,
+  AuthenticatedAppMeetingRoute: AuthenticatedAppMeetingRoute,
+  AuthenticatedAppPlannerRoute: AuthenticatedAppPlannerRoute,
+  AuthenticatedAppResearchRoute: AuthenticatedAppResearchRoute,
+  AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
+  AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+  AuthenticatedAppChatThreadIdRoute: AuthenticatedAppChatThreadIdRoute,
+  AuthenticatedAppChatIndexRoute: AuthenticatedAppChatIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

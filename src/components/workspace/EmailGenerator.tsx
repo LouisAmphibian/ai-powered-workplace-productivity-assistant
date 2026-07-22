@@ -4,67 +4,108 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Copy, Mail, Sparkles } from "lucide-react";
+import { Loader2, Copy, Mail, Sparkles, Download, Save, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { ResponsibleBanner, FactCheckText } from "./ResponsibleBanner";
 import { useWorkspace } from "@/lib/workspace-context";
+import { generateEmailFn } from "@/lib/ai.functions";
+import { pushHistory } from "@/lib/history";
 
-type Tone = "Formal" | "Persuasive" | "Concise" | "Friendly";
+const TONES = [
+  "Formal",
+  "Persuasive",
+  "Concise",
+  "Friendly",
+  "Assertive",
+  "Empathetic",
+  "Enthusiastic",
+  "Apologetic",
+];
 
-const OPENERS: Record<Tone, string> = {
-  Formal: "I hope this message finds you well.",
-  Persuasive: "I wanted to share an opportunity I believe will benefit your team.",
-  Concise: "Quick note on the item below.",
-  Friendly: "Hope you're having a great week!",
-};
-
-const CLOSERS: Record<Tone, string> = {
-  Formal: "Kind regards,\n[Your Name]",
-  Persuasive: "Looking forward to your thoughts,\n[Your Name]",
-  Concise: "Thanks,\n[Your Name]",
-  Friendly: "Cheers,\n[Your Name]",
-};
-
-function generate(audience: string, topic: string, tone: Tone) {
-  const subject = `${tone === "Concise" ? "" : "Update: "}${topic.slice(0, 60)}${topic.length > 60 ? "…" : ""}`;
-  const body = `Hi ${audience || "[Recipient]"},
-
-${OPENERS[tone]}
-
-${topic}
-
-Please let me know if you have any questions or would like to discuss further. I'm happy to set up time later this week.
-
-${CLOSERS[tone]}`;
-  return { subject: subject.trim(), body };
-}
+const AUDIENCES = [
+  "Client",
+  "Executive Team",
+  "Direct Reports",
+  "Cross-Functional Peer",
+  "Vendor",
+  "Investor",
+  "New Hire",
+  "External Partner",
+];
 
 export function EmailGenerator() {
   const { factCheck } = useWorkspace();
-  const [audience, setAudience] = useState("Executive Team");
-  const [topic, setTopic] = useState(
-    "Sharing the Q3 product roadmap update. We're on track to ship the new analytics dashboard by [DATE], and initial pilot customers have reported a 30% reduction in reporting time.",
+  const [audience, setAudience] = useState(AUDIENCES[1]);
+  const [recipient, setRecipient] = useState("Sarah Chen, VP Product");
+  const [context, setContext] = useState(
+    "Sharing the Q3 product roadmap update. We are on track to ship the new analytics dashboard by mid-November, and initial pilot customers reported meaningful reductions in reporting time.",
   );
-  const [tone, setTone] = useState<Tone>("Formal");
-  const [loading, setLoading] = useState(false);
+  const [details, setDetails] = useState("Include the pilot metrics and next steps for the review meeting on Friday.");
+  const [outcome, setOutcome] = useState("Confirm the review meeting and get buy-in on scope.");
+  const [tone, setTone] = useState("Formal");
+  const [loading, setLoading] = useState<false | "gen" | "grammar" | "clarity" | "rewrite">(false);
   const [output, setOutput] = useState<{ subject: string; body: string } | null>(null);
   const [editable, setEditable] = useState(false);
 
-  const onGenerate = () => {
-    setLoading(true);
-    setOutput(null);
-    setTimeout(() => {
-      setOutput(generate(audience, topic, tone));
+  const call = async (
+    action: "generate" | "improve_grammar" | "improve_clarity" | "rewrite",
+    key: "gen" | "grammar" | "clarity" | "rewrite",
+  ) => {
+    if (action !== "generate" && !output) return;
+    setLoading(key);
+    try {
+      const res = await generateEmailFn({
+        data: {
+          recipient,
+          audience,
+          context,
+          details,
+          outcome,
+          tone,
+          action,
+          existing: output ? `Subject: ${output.subject}\n\n${output.body}` : "",
+        },
+      });
+      setOutput(res);
+      if (action === "generate") {
+        pushHistory({ kind: "email", title: res.subject, data: res });
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to generate");
+    } finally {
       setLoading(false);
-    }, 700);
+    }
   };
 
   const copyAll = async () => {
     if (!output) return;
     await navigator.clipboard.writeText(`Subject: ${output.subject}\n\n${output.body}`);
-    toast.success("Email copied to clipboard");
+    toast.success("Email copied");
+  };
+
+  const download = () => {
+    if (!output) return;
+    const blob = new Blob([`Subject: ${output.subject}\n\n${output.body}`], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${output.subject.slice(0, 40) || "email"}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const save = () => {
+    if (!output) return;
+    pushHistory({ kind: "email", title: output.subject, favorite: true, data: output });
+    toast.success("Saved to History");
   };
 
   return (
@@ -77,29 +118,53 @@ export function EmailGenerator() {
               <Mail className="h-5 w-5" /> Compose
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Recipient / Audience</Label>
-              <Input value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="Client, Executive, Team…" />
+          <CardContent className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Recipient</Label>
+                <Input value={recipient} onChange={(e) => setRecipient(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Audience</Label>
+                <Select value={audience} onValueChange={setAudience}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {AUDIENCES.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Primary Topic / Context</Label>
-              <Textarea rows={6} value={topic} onChange={(e) => setTopic(e.target.value)} />
+            <div className="space-y-1.5">
+              <Label>Primary topic / context</Label>
+              <Textarea rows={4} value={context} onChange={(e) => setContext(e.target.value)} />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
+              <Label>Important details</Label>
+              <Textarea rows={2} value={details} onChange={(e) => setDetails(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Desired outcome</Label>
+              <Input value={outcome} onChange={(e) => setOutcome(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
               <Label>Tone</Label>
-              <Select value={tone} onValueChange={(v) => setTone(v as Tone)}>
+              <Select value={tone} onValueChange={setTone}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Formal">Formal</SelectItem>
-                  <SelectItem value="Persuasive">Persuasive</SelectItem>
-                  <SelectItem value="Concise">Concise</SelectItem>
-                  <SelectItem value="Friendly">Friendly</SelectItem>
+                  {TONES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={onGenerate} disabled={loading} className="w-full">
-              {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating…</> : <><Sparkles className="mr-2 h-4 w-4" /> Generate Email</>}
+            <Button
+              onClick={() => call("generate", "gen")}
+              disabled={!!loading}
+              className="w-full"
+            >
+              {loading === "gen" ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating…</>
+              ) : (
+                <><Sparkles className="mr-2 h-4 w-4" /> Generate Email</>
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -107,28 +172,25 @@ export function EmailGenerator() {
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0">
             <CardTitle>Draft</CardTitle>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 text-sm">
                 <Switch checked={editable} onCheckedChange={setEditable} id="edit-toggle" />
                 <Label htmlFor="edit-toggle">Edit</Label>
               </div>
-              <Button size="sm" variant="outline" onClick={copyAll} disabled={!output}>
-                <Copy className="mr-2 h-4 w-4" /> Copy
-              </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {loading && (
+          <CardContent className="space-y-3">
+            {loading === "gen" && (
               <div className="flex h-64 items-center justify-center text-muted-foreground">
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Drafting your email…
               </div>
             )}
-            {!loading && !output && (
+            {loading !== "gen" && !output && (
               <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
                 Your generated email will appear here.
               </div>
             )}
-            {!loading && output && (
+            {loading !== "gen" && output && (
               <div className="animate-in fade-in slide-in-from-bottom-2 space-y-3">
                 <div className="space-y-1">
                   <Label className="text-xs uppercase text-muted-foreground">Subject</Label>
@@ -149,6 +211,56 @@ export function EmailGenerator() {
                       <FactCheckText text={output.body} enabled={factCheck} />
                     </div>
                   )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={copyAll}>
+                    <Copy className="mr-2 h-4 w-4" /> Copy
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={download}>
+                    <Download className="mr-2 h-4 w-4" /> Download
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={save}>
+                    <Save className="mr-2 h-4 w-4" /> Save
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => call("improve_grammar", "grammar")}
+                    disabled={!!loading}
+                  >
+                    {loading === "grammar" ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Wand2 className="mr-2 h-4 w-4" />
+                    )}
+                    Grammar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => call("improve_clarity", "clarity")}
+                    disabled={!!loading}
+                  >
+                    {loading === "clarity" ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Wand2 className="mr-2 h-4 w-4" />
+                    )}
+                    Clarity
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => call("rewrite", "rewrite")}
+                    disabled={!!loading}
+                  >
+                    {loading === "rewrite" ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Wand2 className="mr-2 h-4 w-4" />
+                    )}
+                    Rewrite
+                  </Button>
                 </div>
               </div>
             )}

@@ -3,14 +3,38 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, FileText, Sparkles, ListChecks, ClipboardList } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Loader2,
+  FileText,
+  Sparkles,
+  ListChecks,
+  ClipboardList,
+  AlertTriangle,
+  HelpCircle,
+  ArrowRight,
+  Download,
+} from "lucide-react";
 import { ResponsibleBanner, FactCheckText } from "./ResponsibleBanner";
 import { useWorkspace } from "@/lib/workspace-context";
-
-type Priority = "High" | "Med" | "Low";
-type ActionItem = { task: string; owner: string; priority: Priority; deadline: string };
-type Summary = { exec: string; decisions: string[]; actions: ActionItem[] };
+import { summarizeMeetingFn, type MeetingSummary } from "@/lib/ai.functions";
+import { pushHistory } from "@/lib/history";
+import { toast } from "sonner";
 
 const SAMPLE = `Q3 Planning Meeting - Oct 14, 2025
 Attendees: Sarah (PM), Marcus (Eng Lead), Priya (Design), Diego (Marketing)
@@ -26,47 +50,47 @@ Attendees: Sarah (PM), Marcus (Eng Lead), Priya (Design), Diego (Marketing)
 - Action: Diego needs final marketing copy by Oct 28 - high priority.
 - Next meeting Oct 21.`;
 
-function summarize(text: string): Summary {
-  const exec =
-    "The team reviewed Q3 progress and agreed to ship the analytics dashboard on Nov 15 while cutting dark mode from v1 to protect the launch date. Hiring and marketing timelines were aligned around the new date.";
-  const decisions = [
-    "Ship analytics dashboard on Nov 15.",
-    "Cut dark-mode toggle from v1; revisit in Q4.",
-    "Submit engineering hiring request by end of week.",
-  ];
-  const actions: ActionItem[] = [
-    { task: "Update stakeholders on revised roadmap", owner: "Sarah", priority: "High", deadline: "Oct 15" },
-    { task: "Draft hiring requisition for 2 engineers", owner: "Marcus", priority: "High", deadline: "Oct 17" },
-    { task: "Remove dark-mode screens from Figma", owner: "Priya", priority: "Med", deadline: "Oct 18" },
-    { task: "Finalize marketing launch copy", owner: "Diego", priority: "High", deadline: "Oct 28" },
-    { task: "Prep Nov 3 teaser campaign assets", owner: "Diego", priority: "Med", deadline: "Nov 1" },
-  ];
-  // Slightly reflect user text length so it feels responsive
-  if (text.length < 40) {
-    return { exec: "Not enough transcript provided to generate a meaningful summary.", decisions: [], actions: [] };
-  }
-  return { exec, decisions, actions };
-}
-
-const priorityColor: Record<Priority, string> = {
+const priorityColor: Record<string, string> = {
   High: "bg-red-500/15 text-red-600 dark:text-red-400",
-  Med: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  Medium: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
   Low: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
 };
 
 export function MeetingSummarizer() {
   const { factCheck } = useWorkspace();
   const [transcript, setTranscript] = useState(SAMPLE);
+  const [length, setLength] = useState<"short" | "standard" | "detailed">("standard");
   const [loading, setLoading] = useState(false);
-  const [summary, setSummary] = useState<Summary | null>(null);
+  const [summary, setSummary] = useState<MeetingSummary | null>(null);
 
-  const onGenerate = () => {
+  const run = async () => {
     setLoading(true);
     setSummary(null);
-    setTimeout(() => {
-      setSummary(summarize(transcript));
+    try {
+      const res = await summarizeMeetingFn({ data: { transcript, length } });
+      setSummary(res);
+      pushHistory({
+        kind: "meeting",
+        title: res.executive_summary?.slice(0, 60) || "Meeting summary",
+        data: res,
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to summarize");
+    } finally {
       setLoading(false);
-    }, 800);
+    }
+  };
+
+  const download = () => {
+    if (!summary) return;
+    const md = `# Meeting Summary\n\n## Executive Summary\n${summary.executive_summary}\n\n## Key Points\n${summary.key_points.map((p) => `- ${p}`).join("\n")}\n\n## Decisions\n${summary.decisions.map((p) => `- ${p}`).join("\n")}\n\n## Risks\n${summary.risks.map((p) => `- ${p}`).join("\n")}\n\n## Open Questions\n${summary.questions.map((p) => `- ${p}`).join("\n")}\n\n## Action Items\n${summary.action_items.map((a) => `- [${a.priority}] ${a.task} — ${a.owner} (${a.deadline})`).join("\n")}\n\n## Next Steps\n${summary.next_steps.map((p) => `- ${p}`).join("\n")}\n`;
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "meeting-summary.md";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -80,9 +104,31 @@ export function MeetingSummarizer() {
         </CardHeader>
         <CardContent className="space-y-3">
           <Textarea rows={10} value={transcript} onChange={(e) => setTranscript(e.target.value)} />
-          <Button onClick={onGenerate} disabled={loading}>
-            {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Summarizing…</> : <><Sparkles className="mr-2 h-4 w-4" /> Summarize</>}
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="w-40 space-y-1">
+              <Label className="text-xs">Length</Label>
+              <Select value={length} onValueChange={(v) => setLength(v as typeof length)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="short">Short</SelectItem>
+                  <SelectItem value="standard">Standard</SelectItem>
+                  <SelectItem value="detailed">Detailed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={run} disabled={loading}>
+              {loading ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Summarizing…</>
+              ) : (
+                <><Sparkles className="mr-2 h-4 w-4" /> Summarize</>
+              )}
+            </Button>
+            {summary && (
+              <Button variant="outline" onClick={download}>
+                <Download className="mr-2 h-4 w-4" /> Export .md
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -96,29 +142,25 @@ export function MeetingSummarizer() {
         <div className="animate-in fade-in slide-in-from-bottom-2 grid gap-4 lg:grid-cols-2">
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5" /> Executive Summary</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5" /> Executive Summary
+              </CardTitle>
             </CardHeader>
             <CardContent className="text-sm leading-relaxed">
-              <FactCheckText text={summary.exec} enabled={factCheck} />
+              <FactCheckText text={summary.executive_summary} enabled={factCheck} />
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><ListChecks className="h-5 w-5" /> Key Decisions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc space-y-2 pl-5 text-sm">
-                {summary.decisions.map((d, i) => (
-                  <li key={i}><FactCheckText text={d} enabled={factCheck} /></li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+          <Section icon={<ListChecks className="h-5 w-5" />} title="Key Points" items={summary.key_points} factCheck={factCheck} />
+          <Section icon={<Sparkles className="h-5 w-5" />} title="Decisions" items={summary.decisions} factCheck={factCheck} />
+          <Section icon={<AlertTriangle className="h-5 w-5" />} title="Risks" items={summary.risks} factCheck={factCheck} />
+          <Section icon={<HelpCircle className="h-5 w-5" />} title="Open Questions" items={summary.questions} factCheck={factCheck} />
 
-          <Card>
+          <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><ClipboardList className="h-5 w-5" /> Action Items</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" /> Action Items
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
@@ -131,12 +173,16 @@ export function MeetingSummarizer() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {summary.actions.map((a, i) => (
+                  {summary.action_items.map((a, i) => (
                     <TableRow key={i}>
-                      <TableCell className="max-w-[240px]"><FactCheckText text={a.task} enabled={factCheck} /></TableCell>
+                      <TableCell className="max-w-[280px]">
+                        <FactCheckText text={a.task} enabled={factCheck} />
+                      </TableCell>
                       <TableCell>{a.owner}</TableCell>
                       <TableCell>
-                        <Badge className={priorityColor[a.priority]} variant="secondary">{a.priority}</Badge>
+                        <Badge className={priorityColor[a.priority] ?? ""} variant="secondary">
+                          {a.priority}
+                        </Badge>
                       </TableCell>
                       <TableCell><FactCheckText text={a.deadline} enabled={factCheck} /></TableCell>
                     </TableRow>
@@ -145,8 +191,43 @@ export function MeetingSummarizer() {
               </Table>
             </CardContent>
           </Card>
+
+          <Section icon={<ArrowRight className="h-5 w-5" />} title="Next Steps" items={summary.next_steps} factCheck={factCheck} className="lg:col-span-2" />
         </div>
       )}
     </div>
+  );
+}
+
+function Section({
+  icon,
+  title,
+  items,
+  factCheck,
+  className,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  items: string[];
+  factCheck: boolean;
+  className?: string;
+}) {
+  return (
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">{icon} {title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {items?.length ? (
+          <ul className="list-disc space-y-1.5 pl-5 text-sm">
+            {items.map((d, i) => (
+              <li key={i}><FactCheckText text={d} enabled={factCheck} /></li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">None identified.</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
