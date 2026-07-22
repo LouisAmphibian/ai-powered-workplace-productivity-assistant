@@ -106,7 +106,7 @@ export function AppSidebar() {
               {SECONDARY.map((n) => (
                 <SidebarMenuItem key={n.to}>
                   <SidebarMenuButton asChild isActive={isActive(n.to)} tooltip={n.label}>
-                    <Link to={n.to}>
+                    <Link to={n.to as never}>
                       <n.icon className="h-4 w-4" />
                       <span>{n.label}</span>
                     </Link>
