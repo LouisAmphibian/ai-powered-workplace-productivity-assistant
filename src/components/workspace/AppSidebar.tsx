@@ -32,20 +32,22 @@ import { useWorkspace } from "@/lib/workspace-context";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const NAV = [
+type NavItem = { to: string; label: string; icon: typeof Mail; exact?: boolean };
+
+const NAV: NavItem[] = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/app/email", label: "Smart Email", icon: Mail },
   { to: "/app/meeting", label: "Meeting Notes", icon: FileText },
   { to: "/app/planner", label: "Task Planner", icon: CalendarClock },
   { to: "/app/research", label: "Research", icon: BookOpen },
   { to: "/app/chat", label: "AI Chatbot", icon: MessageSquare },
-] as const;
+];
 
-const SECONDARY = [
+const SECONDARY: NavItem[] = [
   { to: "/app/history", label: "History", icon: History },
   { to: "/app/settings", label: "Settings", icon: Settings },
   { to: "/app/help", label: "Help", icon: HelpCircle },
-] as const;
+];
 
 export function AppSidebar() {
   const { factCheck, setFactCheck } = useWorkspace();
@@ -86,7 +88,7 @@ export function AppSidebar() {
                     isActive={isActive(n.to, n.exact)}
                     tooltip={n.label}
                   >
-                    <Link to={n.to}>
+                    <Link to={n.to as never}>
                       <n.icon className="h-4 w-4" />
                       <span>{n.label}</span>
                     </Link>
