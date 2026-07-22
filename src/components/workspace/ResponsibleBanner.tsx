@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ShieldAlert } from "lucide-react";
 
 export function ResponsibleBanner({ position = "top" }: { position?: "top" | "bottom" }) {
@@ -70,4 +71,4 @@ export function FactCheckText({ text, enabled }: { text: string; enabled: boolea
   return <>{parts}</>;
 }
 
-type ReactNodeArr = Array<string | JSX.Element>;
+type ReactNodeArr = Array<ReactNode>;
