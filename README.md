@@ -180,13 +180,110 @@ High-level components include:
 
 ---
 
+# Tech Stack
+
+The project uses modern technologies selected for performance, maintainability, and scalability.
+
+Examples include:
+
+- Frontend Framework
+- Backend Framework
+- AI Integration
+- Database
+- Authentication
+- REST APIs
+- Git & GitHub
+- Cloud Deployment
+
+---
+
+# Installation
+
+Clone the repository.
+
+```bash
+git clone https://github.com/YOUR_USERNAME/AI-Powered-Workplace-Productivity-Assistant.git
+```
+
+Navigate to the project directory.
+
+```bash
+cd AI-Powered-Workplace-Productivity-Assistant
+```
+
+Install dependencies.
+
+```bash
+# Installation steps will be updated once development begins.
+```
+
+Run the application.
+
+```bash
+# Startup instructions will be added during development.
+```
+
+---
+
+# Configuration
+
+Create a `.env` file (if applicable).
+
+Configure:
+
+- AI API Key
+- Database Connection
+- Authentication
+- Environment Variables
+
+Configuration instructions will be updated during development.
+
+---
+
 ## User Workflow
 
-1. User selects a productivity tool.
-2. User provides input.
-3. AI processes the request.
-4. Structured output is generated.
-5. User can edit, regenerate, save, or export results.
+1. Open the application.
+2. Choose a productivity tool.
+3. Enter your request.
+4. AI generates a response.
+5. Edit, copy, regenerate, or export the output.
+
+---
+
+# Screenshots
+
+Screenshots will be added after the user interface has been completed.
+
+Example:
+
+```
+assets/images/dashboard.png
+assets/images/email-generator.png
+assets/images/chatbot.png
+```
+
+---
+
+# Project Structure
+
+```
+AI-Powered-Workplace-Productivity-Assistant
+│
+├── docs
+├── public
+├── src
+│   ├── components
+│   ├── pages
+│   ├── services
+│   ├── hooks
+│   ├── utils
+│   ├── assets
+│   └── styles
+│
+├── tests
+├── README.md
+└── LICENSE
+```
 
 ---
 
@@ -259,6 +356,22 @@ Potential enhancements include:
 - Workflow automation
 - Mobile application
 - Cloud synchronization
+
+---
+
+# Roadmap
+
+- [ ] User Authentication
+- [ ] Dashboard
+- [ ] Smart Email Generator
+- [ ] Meeting Summarizer
+- [ ] AI Task Planner
+- [ ] Research Assistant
+- [ ] AI Chatbot
+- [ ] User Settings
+- [ ] History Management
+- [ ] Export Functionality
+- [ ] Deployment
 
 ---
 
