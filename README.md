@@ -252,7 +252,27 @@ Configuration instructions will be updated during development.
 
 # Screenshots
 
-Screenshots will be added after the user interface has been completed.
+1. Homepage
+<img width="1890" height="882" alt="image" src="https://github.com/user-attachments/assets/dd946308-8c50-4cbb-8db9-9c54e21ef7f3" />
+
+2. Login and Signup auth
+<img width="1893" height="887" alt="image" src="https://github.com/user-attachments/assets/3a6558c5-108b-4c0e-b543-25f2bb08387c" />
+
+3. Dashboard
+<img width="1908" height="890" alt="image" src="https://github.com/user-attachments/assets/22f83554-597c-41d4-a312-c8430f69d697" />
+
+4. Smart Email Generator
+<img width="1906" height="890" alt="image" src="https://github.com/user-attachments/assets/5a4f4640-c47e-49c8-9e47-ce0fbcbbcad0" />
+
+5. Meeting Notes Summmarizer
+<img width="1901" height="891" alt="image" src="https://github.com/user-attachments/assets/439e8d42-fc03-4521-ba93-62195f51c5b8" />
+
+6. Task Planner
+<img width="1915" height="892" alt="image" src="https://github.com/user-attachments/assets/5423f548-791e-4d2d-a9e5-e7e219a59631" />
+
+
+7.AI Research Assistant
+<img width="1910" height="882" alt="image" src="https://github.com/user-attachments/assets/9b0e2993-f803-47b2-9903-9ee036259bc4" />
 
 Example:
 
