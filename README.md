@@ -285,12 +285,7 @@ assets/images/chatbot.png
 ---
 
 # Demo
-
-
-
-
-
-
+https://github.com/user-attachments/assets/47c0e25e-7740-4fea-934b-088de9c7854a
 
 ---
 
